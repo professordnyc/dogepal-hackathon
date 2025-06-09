@@ -1,19 +1,24 @@
 """
-MLflow configuration settings for the DOGEPAL project.
+MLflow configuration for DOGEPAL project.
+Loads settings from environment variables with fallback to defaults.
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Base directory
 BASE_DIR = Path(__file__).parent.parent
 
-# MLflow settings
-TRACKING_URI = "file:./mlruns"  # Local file-based tracking
-EXPERIMENT_NAME = "dogepal_spending"
+# MLflow settings - with environment variable fallbacks
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "file:./mlruns")
+EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "dogepal_spending")
 
 # Model settings
-MODEL_NAME = "spending_recommender"
-MODEL_VERSION = "1.0.0"
+MODEL_NAME = os.getenv("MLFLOW_MODEL_NAME", "spending_recommender")
+MODEL_VERSION = os.getenv("MLFLOW_MODEL_VERSION", "1.0.0")
 
 # Paths
 MODEL_ARTIFACT_PATH = str(BASE_DIR / "models" / "artifacts")
