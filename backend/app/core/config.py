@@ -1,10 +1,13 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, List
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "DOGEPAL - Spending Recommendation Engine"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
+    
+    # Debug mode
+    DEBUG: bool = True
     
     # Database
     SQLALCHEMY_DATABASE_URI: str = "sqlite+aiosqlite:///./dogepal.db"
@@ -14,7 +17,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # CORS
-    BACKEND_CORS_ORIGINS: list[str] = ["*"]
+    BACKEND_CORS_ORIGINS: List[str] = ["*"]
     
     class Config:
         case_sensitive = True

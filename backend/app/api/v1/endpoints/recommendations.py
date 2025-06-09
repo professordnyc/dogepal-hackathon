@@ -11,7 +11,7 @@ from app.schemas.recommendation import (
     Recommendation, RecommendationCreate, RecommendationUpdate,
     RecommendationWithSpending, RecommendationStats, RecommendationStatus, RecommendationType
 )
-from app.schemas.spending import Category, Department
+from app.schemas.spending import CategoryEnum as Category, DepartmentEnum as Department
 
 router = APIRouter()
 
@@ -150,7 +150,7 @@ async def generate_recommendations(
             confidence = min(0.99, z_score / 4)  # Cap confidence at 0.99
             if confidence >= min_confidence:
                 recommendation = RecommendationModel(
-                    spending_id=item["id"],
+                    transaction_id=item["transaction_id"],
                     recommendation_type=RecommendationType.SPENDING_ANOMALY,
                     title=f"Unusually large {category} transaction",
                     description=(
@@ -165,11 +165,7 @@ async def generate_recommendations(
                         f"in the {category} category. The amount significantly exceeds "
                         "the typical transaction value for this category."
                     ),
-                    suggested_action=(
-                        "Review this transaction for potential errors or opportunities "
-                        "for cost savings. Consider negotiating with the vendor or "
-                        "finding alternative suppliers."
-                    ),
+                    priority="high",
                     status=RecommendationStatus.PENDING
                 )
                 new_recommendations.append(recommendation)

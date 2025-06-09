@@ -19,14 +19,14 @@ class RecommendationStatus(str, Enum):
 
 # Base schema with common fields
 class RecommendationBase(BaseModel):
-    spending_id: int = Field(..., description="ID of the related spending record")
+    transaction_id: str = Field(..., description="ID of the related spending record")
     recommendation_type: RecommendationType = Field(..., description="Type of recommendation")
     title: str = Field(..., max_length=200, description="Short title for the recommendation")
     description: Optional[str] = Field(None, description="Detailed description")
     potential_savings: float = Field(..., ge=0, description="Potential savings amount")
     confidence_score: float = Field(..., ge=0, le=1, description="Confidence level (0-1)")
     explanation: str = Field(..., description="Technical explanation of the recommendation")
-    suggested_action: str = Field(..., description="Recommended action to take")
+    priority: str = Field("medium", description="Priority level: low, medium, high")
     status: RecommendationStatus = Field(default=RecommendationStatus.PENDING, description="Current status of the recommendation")
 
 # Schema for creating a new recommendation
@@ -41,17 +41,19 @@ class RecommendationUpdate(BaseModel):
     potential_savings: Optional[float] = Field(None, ge=0)
     confidence_score: Optional[float] = Field(None, ge=0, le=1)
     explanation: Optional[str] = None
-    suggested_action: Optional[str] = None
+    priority: Optional[str] = None
     status: Optional[RecommendationStatus] = None
 
 # Base schema for database representation
 class RecommendationInDBBase(RecommendationBase):
-    id: int
+    id: str
+    metadata_field: dict = Field(default_factory=dict)
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
 # Schema for returning recommendation data
 class Recommendation(RecommendationInDBBase):
@@ -64,8 +66,9 @@ class RecommendationWithSpending(Recommendation):
     spending_vendor: str
     spending_date: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
 # Schema for recommendation statistics
 class RecommendationStats(BaseModel):

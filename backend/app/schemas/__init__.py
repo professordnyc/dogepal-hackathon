@@ -3,9 +3,12 @@ from app.schemas.spending import SpendingCreate, SpendingUpdate, SpendingInDB, S
 from app.schemas.recommendation import (
     RecommendationCreate,
     RecommendationUpdate,
-    RecommendationInDB,
+    RecommendationInDBBase as RecommendationInDB,
     Recommendation,
-    RecommendationWithSpending
+    RecommendationWithSpending,
+    RecommendationStats,
+    RecommendationType,
+    RecommendationStatus
 )
 
 # Make these available when importing from app.schemas

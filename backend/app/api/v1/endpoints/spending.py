@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.spending import Spending as SpendingModel
 from app.schemas.spending import (
     Spending, SpendingCreate, SpendingUpdate, SpendingInDB,
-    Category, Department
+    CategoryEnum as Category, DepartmentEnum as Department
 )
 
 router = APIRouter()
@@ -61,18 +61,18 @@ async def read_spendings(
     if max_amount is not None:
         query = query.where(SpendingModel.amount <= max_amount)
     if start_date:
-        query = query.where(SpendingModel.date >= start_date)
+        query = query.where(SpendingModel.spending_date >= start_date)
     if end_date:
-        query = query.where(SpendingModel.date <= end_date)
+        query = query.where(SpendingModel.spending_date <= end_date)
     if search:
         search_filter = or_(
             SpendingModel.vendor.ilike(f"%{search}%"),
-            SpendingModel.description.ilike(f"%{search}%")
+            SpendingModel.justification.ilike(f"%{search}%")
         )
         query = query.where(search_filter)
     
     # Apply pagination
-    query = query.offset(skip).limit(limit).order_by(SpendingModel.date.desc())
+    query = query.offset(skip).limit(limit).order_by(SpendingModel.spending_date.desc())
     
     # Execute query
     result = await db.execute(query)
