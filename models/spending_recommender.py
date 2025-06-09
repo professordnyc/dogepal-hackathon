@@ -15,9 +15,21 @@ class SpendingRecommender(BaseEstimator, ClassifierMixin):
     This implementation uses rule-based logic with MLflow compatibility for deployment.
     The model is designed to provide explainable AI recommendations for government spending,
     with extensibility for individual and team finance management.
+    
+    MLflow Integration:
+    - Implements predict() for batch inference
+    - Implements predict_proba() for confidence scores
+    - Can be saved/loaded using MLflow's pyfunc interface
     """
     
     def __init__(self, confidence_threshold: float = 0.7):
+        """
+        Initialize the recommender with a confidence threshold.
+        
+        Args:
+            confidence_threshold: Minimum confidence score (0-1) for a recommendation to be made.
+                               Recommendations with lower confidence will be filtered out.
+        """
         """
         Initialize the recommender with a confidence threshold.
         
@@ -51,30 +63,85 @@ class SpendingRecommender(BaseEstimator, ClassifierMixin):
             X: Input data (list of spending records or a single record)
             
         Returns:
-            List of recommendation dictionaries
+            List of recommendation dictionaries or a single recommendation if single input
+            
+        Note:
+            This method is compatible with scikit-learn's predict() interface
+            and can be used for batch processing.
         """
         if not X:
             return []
             
+        single_input = False
         if not isinstance(X, list):
             X = [X]
+            single_input = True
             
         recommendations = []
         for record in X:
             if not isinstance(record, dict):
                 print(f"⚠️  Warning: Expected dictionary, got {type(record).__name__}")
+                recommendations.append(None)
                 continue
                 
             try:
                 # Generate a recommendation based on the record
                 rec = self._generate_recommendation(record)
-                if rec:
-                    recommendations.append(rec)
+                recommendations.append(rec[0] if rec else None)
             except Exception as e:
                 print(f"⚠️  Error processing record {record.get('transaction_id', 'unknown')}: {str(e)}")
-                continue
+                recommendations.append(None)
+        
+        return recommendations[0] if single_input and recommendations else recommendations
+    
+    def predict_proba(self, X):
+        """
+        Predict probability estimates for the input data.
+        For this rule-based model, returns confidence scores.
+        
+        Args:
+            X: Input data (list of spending records or a single record)
+            
+        Returns:
+            List of confidence scores (0-1) for each input record
+        """
+        predictions = self.predict(X)
+        if not isinstance(predictions, list):
+            predictions = [predictions]
+            
+        confidences = []
+        for pred in predictions:
+            if pred is None:
+                confidences.append(0.0)
+            else:
+                confidences.append(pred.get('confidence_score', 0.0))
                 
-        return recommendations
+        return confidences[0] if len(confidences) == 1 else confidences
+    
+    def save(self, path: str):
+        """
+        Save the model to a file.
+        
+        Args:
+            path: Path to save the model to
+        """
+        import joblib
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        joblib.dump(self, path)
+    
+    @classmethod
+    def load(cls, path: str):
+        """
+        Load a model from a file.
+        
+        Args:
+            path: Path to the saved model
+            
+        Returns:
+            Loaded SpendingRecommender instance
+        """
+        import joblib
+        return joblib.load(path)
     
     def _calculate_z_score(self, value: float, mean: float, std_dev: float) -> float:
         """Calculate the z-score for a value given mean and standard deviation."""
