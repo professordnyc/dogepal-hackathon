@@ -58,6 +58,41 @@ A local/offline spending recommendation engine that provides transparent, explai
 
 ## 📊 Sample Data Generation
 
+---
+
+## Simple API Server Usage & Endpoint Conventions
+
+The included `scripts/simple_api_server.py` provides a minimal HTTP API for accessing spending and recommendation data from the SQLite database. This is intended for demo and hackathon judging purposes.
+
+### Supported Endpoints (Strict Matching)
+- `GET /api/v1/spending` — List all spending records
+- `GET /api/v1/spending/<transaction_id>` — Get a specific spending record by ID
+- `GET /api/v1/recommendations` — List all recommendations
+- `GET /api/v1/recommendations/<id>` — Get a specific recommendation by ID
+
+**Important Notes:**
+- Endpoints are case-sensitive and do not support trailing slashes (e.g., `/api/v1/spending/` will NOT work).
+- Only the above patterns are supported. Typos, extra slashes, or unsupported paths will return `{ "detail": "Endpoint not found" }`.
+- If you request a valid endpoint with a non-existent ID, you will receive `{ "detail": "Spending record not found" }` or `{ "detail": "Recommendation not found" }`.
+
+### Example URLs (assuming server runs on port 8080):
+- List all spending: [http://localhost:8080/api/v1/spending](http://localhost:8080/api/v1/spending)
+- Get a specific spending record: [http://localhost:8080/api/v1/spending/TXN1002](http://localhost:8080/api/v1/spending/TXN1002)
+- List all recommendations: [http://localhost:8080/api/v1/recommendations](http://localhost:8080/api/v1/recommendations)
+- Get a specific recommendation: [http://localhost:8080/api/v1/recommendations/REC1002](http://localhost:8080/api/v1/recommendations/REC1002)
+
+### What Will NOT Work
+- `/api/v1/spending/` (trailing slash)
+- `/api/v1/Spending` (case mismatch)
+- `/api/v1/recommendation/REC1002` (typo in path)
+- `/api/v1/recommendations/REC9999` (non-existent ID)
+
+### Troubleshooting
+- If you receive an error, check that you are using the exact endpoint and a valid ID as listed by the `/api/v1/spending` or `/api/v1/recommendations` endpoints.
+- The server does not support flexible or RESTful conventions beyond those listed above.
+
+---
+
 The project includes a script to generate realistic sample data for testing and demonstration purposes.
 
 ### Generating Sample Data
