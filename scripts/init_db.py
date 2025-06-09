@@ -45,10 +45,15 @@ Base = declarative_base()
 # Import models to ensure they are registered with SQLAlchemy
 from app.models.spending import Spending, Recommendation
 
-# Import the init_db function
-from app.db.init_db import init_db
+# Import the init function
+from app.db.init_db import init
 
 async def create_tables():
+    # Drop all tables first
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    
+    # Create all tables with the correct schema
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -56,16 +61,17 @@ async def main() -> None:
     print("Initializing database...")
     
     try:
-        # Create tables first
-        print("Creating database tables...")
+        # Create tables
         await create_tables()
         
         # Initialize with sample data
-        print("Adding sample data...")
-        async with async_session_factory() as session:
-            await init_db(session)
-            await session.commit()
-            print("✅ Database initialized successfully!")
+        from app.db.init_db import create_sample_data, init_models
+        
+        # Initialize models
+        await init_models()
+        
+        # Create sample data
+        await create_sample_data()
             
     except Exception as e:
         print(f"❌ Error initializing database: {e}")

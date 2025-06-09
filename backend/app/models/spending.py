@@ -70,10 +70,8 @@ class Spending(Base):
 
 
 class Recommendation(Base):
-    """
-    Model representing AI-generated recommendations for spending optimization.
-    """
-    __tablename__ = "recommendations"
+    """Model representing AI-generated recommendations for spending optimization."""
+    __tablename__ = "recommendation"  # Changed from 'recommendations' to match the actual table name
     
     id = Column(String, primary_key=True, index=True, doc="Unique recommendation ID")
     transaction_id = Column(String, ForeignKey('spending.transaction_id', ondelete='CASCADE'), nullable=False)

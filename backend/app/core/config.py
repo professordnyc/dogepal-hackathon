@@ -19,8 +19,10 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
     
+    # Allow extra environment variables without validation
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "allow"  # Allow extra environment variables
 
 settings = Settings()
