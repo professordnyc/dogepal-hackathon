@@ -87,7 +87,7 @@ class SpendingRecommender(BaseEstimator, ClassifierMixin):
             try:
                 # Generate a recommendation based on the record
                 rec = self._generate_recommendation(record)
-                recommendations.append(rec[0] if rec else None)
+                recommendations.append(rec)  # rec is already a dictionary or None
             except Exception as e:
                 print(f"⚠️  Error processing record {record.get('transaction_id', 'unknown')}: {str(e)}")
                 recommendations.append(None)

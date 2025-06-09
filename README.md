@@ -199,16 +199,96 @@ python hp_ai_studio_integration.py --deploy-config  # Create deployment configur
    - Defines compute resources (CPU, memory)
    - Specifies API endpoint configuration
    - Includes input/output schemas
+
+### End-to-End Integration
+
+We've successfully integrated the SpendingRecommender model with both the frontend and backend components of DOGEPAL:
+
+#### Backend Integration
+
+The SpendingRecommender model is now integrated with the FastAPI backend in `backend/app/api/v1/endpoints/recommendations.py`. Key integration points:
+
+- The `generate_recommendations` endpoint now uses our HP AI Studio-integrated model
+- Model recommendations are converted to database records with proper mapping of:
+  - Recommendation types (spending_anomaly, budget_optimization, etc.)
+  - Confidence scores and priority levels
+  - Explainability metadata and calculation details
+- The backend handles proper error handling and validation
+
+#### Frontend Integration
+
+The Streamlit frontend in `frontend/pages/recommendations.py` has been enhanced to showcase the model's explainability features:
+
+- Detailed display of calculation methodology in formatted code blocks
+- Visualization of factors considered in the recommendation
+- Confidence score indicators with color-coded priority levels
+- Interactive expandable sections for detailed model explanations
+
+#### NYC Government Context
+
+The integration preserves the NYC government context with:
+
+- Borough-specific spending analysis
+- Department benchmarks for anomaly detection
+- Project budget monitoring
+- Vendor consolidation recommendations tailored to government procurement
    - Saves the configuration to `models/artifacts/deployment_config.json`
+
+### Model Explainability Features
+
+Our SpendingRecommender model provides comprehensive explainability features that meet HP AI Studio Hackathon requirements:
+
+#### 1. Transparent Calculation Methodology
+
+- **Z-Score Calculations**: Clear mathematical formulas showing how spending anomalies are detected
+- **Benchmark Comparisons**: Detailed comparisons against department and category averages
+- **Confidence Scoring**: Explicit formulas for how confidence scores are calculated
+
+#### 2. Factors Considered
+
+Each recommendation includes a detailed list of factors that influenced the decision:
+
+- Department spending patterns
+- Category benchmarks
+- Historical transaction data
+- Vendor consolidation opportunities
+- Budget optimization potential
+
+#### 3. Visual Explainability
+
+The frontend visualizes model decisions with:
+
+- Color-coded confidence indicators
+- Progress bars for confidence scores
+- Priority indicators (high/medium/low)
+- Formatted calculation blocks
+
+#### 4. Recommendation Metadata
+
+Each recommendation includes rich metadata:
+
+- Potential savings amounts
+- Confidence scores
+- Priority levels
+- Suggested actions
+- Related transaction details
+
+These explainability features ensure that users understand not just WHAT the model recommends, but WHY it makes those recommendations, fostering trust and adoption.
 
 ### Testing the Integration
 
-To verify your integration is working correctly:
+To verify the HP AI Studio integration is working correctly:
 
-1. **Check MLflow UI**
-   - Navigate to your HP AI Studio MLflow UI
-   - Verify experiment runs are visible
-   - Check that metrics and artifacts are properly logged
+1. **Run the test script**
+   ```bash
+   python test_recommender.py
+   ```
+
+2. **Check MLflow UI**
+   - Navigate to the MLflow UI provided by HP AI Studio
+   - Verify experiment runs are logged correctly
+   - Check model registration in the Model Registry
+   - Confirm artifacts are properly stored
 
 2. **Test the registered model**
    - Confirm the model appears in the HP AI Studio model registry

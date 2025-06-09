@@ -201,10 +201,43 @@ def display_recommendation(rec):
             
             with col1:
                 st.markdown("#### Explanation")
-                st.markdown(rec["explanation"])
+                
+                # Check if explanation contains calculation details (from HP AI Studio model)
+                explanation_text = rec["explanation"]
+                if "\n\nFactors considered:" in explanation_text:
+                    # Split into calculation and factors
+                    parts = explanation_text.split("\n\nFactors considered:")
+                    
+                    # Display calculation in a code block for better formatting
+                    st.markdown("**Calculation Details:**")
+                    st.code(parts[0], language="text")
+                    
+                    # Display factors in a bulleted list
+                    st.markdown("**Factors Considered:**")
+                    factors = parts[1].strip().split("\n")
+                    for factor in factors:
+                        st.markdown(factor)
+                else:
+                    # Display regular explanation
+                    st.markdown(explanation_text)
                 
                 st.markdown("#### Suggested Action")
                 st.markdown(rec["suggested_action"])
+                
+                # Add explainability metrics if available
+                if rec.get("confidence_score"):
+                    st.markdown("#### Confidence Metrics")
+                    st.progress(rec["confidence_score"])
+                    st.markdown(f"Confidence Score: **{rec['confidence_score']*100:.1f}%**")
+                    
+                    # Priority indicator
+                    priority = rec.get("priority", "medium")
+                    priority_color = {
+                        "high": "🔴", 
+                        "medium": "🟠",
+                        "low": "🟢"
+                    }.get(priority.lower(), "🟠")
+                    st.markdown(f"Priority: **{priority_color} {priority.title()}**")
                 
                 if rec.get("spending_vendor"):
                     st.markdown("#### Related Transaction")

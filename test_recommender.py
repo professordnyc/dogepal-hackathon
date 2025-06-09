@@ -63,6 +63,18 @@ def main():
             # Access the private method directly for debugging
             result = model._generate_recommendation(record)
             logger.info(f"Direct _generate_recommendation result: {result}")
+            
+            # Print detailed debugging information
+            print(f"\nDEBUG - Record {record['transaction_id']}:")
+            print(f"  Department: {record['department']}")
+            print(f"  Category: {record['category']}")
+            print(f"  Amount: ${record['amount']:,.2f}")
+            print(f"  Direct method result type: {type(result)}")
+            if result:
+                print(f"  Recommendation generated: {result.get('type', 'Unknown')}")
+                print(f"  Confidence: {result.get('confidence_score', 0)}")
+            else:
+                print("  No recommendation generated from direct method call")
     except Exception as e:
         logger.error(f"Error in direct method call: {str(e)}")
         logger.error(traceback.format_exc())
