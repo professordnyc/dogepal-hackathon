@@ -1,0 +1,64 @@
+# Privacy controls - DO NOT TRAIN/DO NOT TRACK
+* -text linguist-detectable=false
+* -diff
+* -merge
+* -export-ignore
+* -export-subst
+* -ident
+* -text eol=lf
+
+# Ensure proper line endings
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.exe binary
+*.dll binary
+*.pyd binary
+*.so binary
+*.dylib binary
+*.a binary
+*.o binary
+*.class binary
+*.jar binary
+*.war binary
+*.ear binary
+*.rar binary
+*.7z binary
+*.bz2 binary
+*.xz binary
+*.zst binary
+
+# Data files
+*.csv text eol=lf
+*.tsv text eol=lf
+*.jsonl text eol=lf
+*.parquet binary
+*.feather binary
+*.h5 binary
+*.joblib binary
+*.npy binary
+*.npz binary
+*.pt binary
+*.pth binary
+*.bin binary
+*.onnx binary
+*.tflite binary
+*.pb binary

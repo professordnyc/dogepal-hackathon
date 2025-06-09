@@ -1,0 +1,18 @@
+# DO NOT TRACK / DO NOT TRAIN NOTICE
+
+This repository contains proprietary code and data that should not be used for:
+- Training machine learning models
+- AI/ML model training datasets
+- Automated analysis or scraping
+- Web crawling or indexing
+- Any form of data collection or analysis without explicit permission
+
+This includes but is not limited to:
+- Code and configuration files
+- Documentation and comments
+- Commit messages and history
+- Any other content in this repository
+
+By accessing this repository, you agree to respect these restrictions.
+
+Last updated: 2025-06-09
