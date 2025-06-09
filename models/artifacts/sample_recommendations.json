@@ -1,0 +1,11 @@
+[
+  {
+    "transaction_id": "TX0001",
+    "recommendation_type": "spending_anomaly",
+    "title": "High Spending Anomaly Detected",
+    "description": "Department spending is significantly above average",
+    "potential_savings": 6250.0,
+    "confidence_score": 0.95,
+    "priority": "high"
+  }
+]

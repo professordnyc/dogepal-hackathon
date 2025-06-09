@@ -1,0 +1,51 @@
+{
+  "features": [
+    {
+      "name": "amount",
+      "importance": "high",
+      "description": "Transaction amount"
+    },
+    {
+      "name": "vendor",
+      "importance": "high",
+      "description": "Vendor name"
+    },
+    {
+      "name": "category",
+      "importance": "medium",
+      "description": "Spending category"
+    },
+    {
+      "name": "department",
+      "importance": "medium",
+      "description": "Government department"
+    },
+    {
+      "name": "borough",
+      "importance": "low",
+      "description": "NYC borough"
+    }
+  ],
+  "recommendation_types": [
+    {
+      "name": "cost_saving",
+      "description": "Identifies opportunities to reduce costs",
+      "confidence_calculation": "Based on historical spending patterns and vendor comparisons"
+    },
+    {
+      "name": "vendor_consolidation",
+      "description": "Suggests consolidating purchases with fewer vendors",
+      "confidence_calculation": "Based on vendor frequency and spending amounts"
+    },
+    {
+      "name": "budget_optimization",
+      "description": "Recommends optimal budget allocation",
+      "confidence_calculation": "Based on department benchmarks and spending trends"
+    },
+    {
+      "name": "spending_anomaly",
+      "description": "Flags unusual spending patterns",
+      "confidence_calculation": "Based on statistical outlier detection (z-scores)"
+    }
+  ]
+}

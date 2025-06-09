@@ -1,0 +1,73 @@
+{
+  "name": "dogepal_spending_recommender-deployment",
+  "model_name": "dogepal_spending_recommender",
+  "model_version": 4,
+  "environment": {
+    "python_version": "3.9",
+    "channels": [
+      "defaults",
+      "conda-forge"
+    ],
+    "dependencies": [
+      "python=3.10",
+      "scikit-learn>=1.0.0",
+      "pandas>=1.3.0",
+      "numpy>=1.21.0"
+    ]
+  },
+  "resources": {
+    "cpu": 1,
+    "memory": "2Gi"
+  },
+  "input_example": {
+    "transaction_id": "TX0001",
+    "user_id": "USER01",
+    "department": "Parks",
+    "borough": "Manhattan",
+    "vendor": "Vendor05",
+    "category": "Office Supplies",
+    "amount": 1250.75,
+    "date": "2025-01-15"
+  },
+  "signature": {
+    "inputs": [
+      {
+        "name": "transaction_id",
+        "type": "string"
+      },
+      {
+        "name": "user_id",
+        "type": "string"
+      },
+      {
+        "name": "department",
+        "type": "string"
+      },
+      {
+        "name": "borough",
+        "type": "string"
+      },
+      {
+        "name": "vendor",
+        "type": "string"
+      },
+      {
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "name": "amount",
+        "type": "double"
+      },
+      {
+        "name": "date",
+        "type": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "list"
+      }
+    ]
+  }
+}
