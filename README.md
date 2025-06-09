@@ -53,6 +53,45 @@ A local/offline spending recommendation engine that provides transparent, explai
 
 3. **Install dependencies**
    ```bash
+   pip install -r requirements.txt
+   ```
+
+## 📊 Sample Data Generation
+
+The project includes a script to generate realistic sample data for testing and demonstration purposes.
+
+### Generating Sample Data
+
+1. **Run the data generation script**:
+   ```bash
+   python scripts/generate_sqlite_direct.py
+   ```
+
+2. **What's included**:
+   - 100 realistic spending records with NYC government context
+   - 71 AI-powered recommendations
+   - Sample data includes:
+     - NYC boroughs and departments
+     - Various spending categories and vendors
+     - Different recommendation types with confidence scores
+
+3. **Customization**:
+   - Edit `scripts/generate_sqlite_direct.py` to modify data generation parameters
+   - Adjust the number of records by changing the count parameter
+   - Modify the random seed for reproducible results
+
+### Database Schema
+
+The sample data populates two main tables:
+
+1. **spending**: Contains transaction records with details like amount, vendor, and category
+2. **recommendation**: Contains AI-generated recommendations linked to spending records
+
+## 🚀 Running the Application
+   ```
+
+3. **Install dependencies**
+   ```bash
    cd backend
    pip install -r requirements.txt
    ```
