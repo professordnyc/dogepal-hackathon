@@ -1,0 +1,28 @@
+# Windsurf Configuration
+# This file configures Windsurf's behavior for this project
+
+[telemetry]
+enabled = false  # Disable all telemetry and data collection
+track_usage = false  # Disable usage tracking
+
+[model]
+train_on_data = false  # Prevent training on user data
+
+[features]
+code_completion = true
+chat = true
+
+[privacy]
+# Ensure no sensitive data is collected or stored
+anonymize_data = true
+retention_days = 0  # Don't retain any data
+
+# Explicitly disable any data collection features
+[data_collection]
+enabled = false
+crash_reports = false
+usage_statistics = false
+
+# Local development settings
+[local]
+use_local_models = true  # Prefer local models when available

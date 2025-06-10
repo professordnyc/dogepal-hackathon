@@ -142,3 +142,6 @@ frontend/out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Backup directories
+backup_old_files/

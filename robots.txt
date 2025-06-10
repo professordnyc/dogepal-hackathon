@@ -1,8 +1,0 @@
-# robots.txt for DOGEPAL Hackathon Project
-
-User-agent: *
-Disallow: /
-
-# DO NOT INDEX, CRAWL, OR TRAIN
-# This repository contains proprietary code and should not be indexed or used for training.
-# See .do-not-track for more information.

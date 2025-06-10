@@ -1,43 +1,17 @@
-# DOGEPAL - Local Spending Recommendation Engine
+# DOGEPAL
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRIVACY](https://img.shields.io/badge/PRIVACY-Do%20Not%20Train%20%2F%20Track-red)](https://github.com/professordnyc/dogepal-hackathon)
-[![HP AI Studio](https://img.shields.io/badge/HP%20AI%20Studio-Integrated-blue)](https://github.com/professordnyc/dogepal-hackathon)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-> **Privacy Notice**: This repository is configured with `DO-NOT-TRACK` and `DO-NOT-TRAIN` rules. Please respect these privacy controls and do not use this code for training AI/ML models without explicit permission.
+AI-Powered Government Spending Analysis Tool
 
-A local/offline spending recommendation engine that provides transparent, explainable spending insights for individuals and teams, inspired by DOGE (Department of Government Efficiency) principles. Integrated with HP AI Studio for model training, tracking, and deployment.
+## Overview
 
-## 🚀 Features
+DOGEPAL is a streamlined, privacy-focused tool for analyzing and optimizing government spending. This version features a simple Streamlit interface with a SQLite backend, designed for local development and analysis.
 
-- **Spending Analysis**: Track and categorize transactions
-- **AI-Powered Recommendations**: Get personalized spending optimization suggestions
-- **Transparency Notes**: Understand the reasoning behind each recommendation
-- **Local-First**: Your data stays on your machine
-- **Explainable AI**: Clear explanations for all recommendations
-- **HP AI Studio Integration**: MLflow tracking, model registry, and deployment
+> **Privacy First**: This project is configured with telemetry disabled and no data collection. See our [privacy policy](docs/PRIVACY.md) for details.
 
-## 🛠️ Tech Stack
-
-- **Backend**: FastAPI (Python 3.10+)
-- **Frontend**: Streamlit
-- **Database**: SQLite (with async SQLAlchemy 2.0)
-- **AI/ML**: Scikit-learn, MLflow (for model tracking and deployment)
-- **Testing**: pytest
-- **Containerization**: Docker (optional)
-- **Model Registry**: HP AI Studio
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- MLflow 2.0+
-- Access to HP AI Studio (for model deployment)
-- pip (Python package manager)
-- Git
-
-### Installation
+## Quick Start
 
 1. **Clone the repository**
    ```bash
@@ -45,449 +19,145 @@ A local/offline spending recommendation engine that provides transparent, explai
    cd dogepal-hackathon
    ```
 
-2. **Set up a virtual environment**
+2. **Set up the environment**
    ```bash
-   # On Windows
-   python -m venv .venv
-   .venv\Scripts\activate
-   
-   # On macOS/Linux
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## 📊 Sample Data Generation
-
----
-
-## Simple API Server Usage & Endpoint Conventions
-
-The included `scripts/simple_api_server.py` provides a minimal HTTP API for accessing spending and recommendation data from the SQLite database. This is intended for demo and hackathon judging purposes.
-
-### Supported Endpoints (Strict Matching)
-- `GET /api/v1/spending` — List all spending records
-- `GET /api/v1/spending/<transaction_id>` — Get a specific spending record by ID
-- `GET /api/v1/recommendations` — List all recommendations
-- `GET /api/v1/recommendations/<id>` — Get a specific recommendation by ID
-
-**Important Notes:**
-- Endpoints are case-sensitive and do not support trailing slashes (e.g., `/api/v1/spending/` will NOT work).
-- Only the above patterns are supported. Typos, extra slashes, or unsupported paths will return `{ "detail": "Endpoint not found" }`.
-- If you request a valid endpoint with a non-existent ID, you will receive `{ "detail": "Spending record not found" }` or `{ "detail": "Recommendation not found" }`.
-
-### Example URLs (assuming server runs on port 8080):
-- List all spending: [http://localhost:8080/api/v1/spending](http://localhost:8080/api/v1/spending)
-- Get a specific spending record: [http://localhost:8080/api/v1/spending/TXN1002](http://localhost:8080/api/v1/spending/TXN1002)
-- List all recommendations: [http://localhost:8080/api/v1/recommendations](http://localhost:8080/api/v1/recommendations)
-- Get a specific recommendation: [http://localhost:8080/api/v1/recommendations/REC1002](http://localhost:8080/api/v1/recommendations/REC1002)
-
-### What Will NOT Work
-- `/api/v1/spending/` (trailing slash)
-- `/api/v1/Spending` (case mismatch)
-- `/api/v1/recommendation/REC1002` (typo in path)
-- `/api/v1/recommendations/REC9999` (non-existent ID)
-
-### Troubleshooting
-- If you receive an error, check that you are using the exact endpoint and a valid ID as listed by the `/api/v1/spending` or `/api/v1/recommendations` endpoints.
-- The server does not support flexible or RESTful conventions beyond those listed above.
-
----
-
-## 🚀 HP AI Studio Integration
-
-This project is integrated with HP AI Studio for model training, tracking, and deployment. We provide a CLI-based approach that meets all hackathon requirements while working around potential desktop app limitations.
-
-### Why CLI Integration?
-
-We've implemented a command-line interface (CLI) for HP AI Studio integration to address potential issues with the desktop application, such as:
-
-- Workspace startup hangs or freezes
-- Dependency conflicts between project requirements and HP AI Studio
-- Path resolution issues with nested project structures
-- Environment variable conflicts
-
-Our CLI approach ensures reliable integration while maintaining all the benefits of HP AI Studio's MLflow tracking, model registry, and deployment capabilities.
-
-### HP AI Studio Integration Script
-
-The `hp_ai_studio_integration.py` script provides a comprehensive command-line interface for HP AI Studio integration:
-
-```bash
-# Run all integration steps (train, register, create deployment config)
-python hp_ai_studio_integration.py --all
-
-# Or run individual steps
-python hp_ai_studio_integration.py --train      # Train and log model to MLflow
-python hp_ai_studio_integration.py --register   # Register model in HP AI Studio registry
-python hp_ai_studio_integration.py --deploy-config  # Create deployment configuration
-```
-
-### Step-by-Step Integration Guide
-
-#### 1. Environment Setup
-
-1. **Create and activate a virtual environment**
-   ```bash
-   # On Windows
+   # Create and activate virtual environment
    python -m venv venv
-   venv\Scripts\activate
+   .\venv\Scripts\activate  # Windows
+   # or
+   source venv/bin/activate  # macOS/Linux
    
-   # On macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-2. **Install required dependencies**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r models/requirements.txt
-   ```
-
-3. **Configure MLflow tracking URI**
-   
-   Create a `.env` file in the project root with your HP AI Studio MLflow tracking URI:
-   ```
-   MLFLOW_TRACKING_URI=https://your-hp-ai-studio-mlflow-uri
-   ```
-   
-   You can find this URI in your HP AI Studio workspace settings or in the MLflow tracking server configuration.
-
-#### 2. Training and Logging the Model
-
-1. **Run the training script**
-   ```bash
-   python hp_ai_studio_integration.py --train
-   ```
-
-2. **What happens during training**:
-   - The script initializes the SpendingRecommender model
-   - Loads sample data (or generates synthetic data if not available)
-   - Trains the model on the data
-   - Logs model parameters, metrics, and artifacts to MLflow
-   - Saves example inputs and outputs for documentation
-   - Returns a run ID for tracking
-
-#### 3. Registering the Model
-
-1. **Register the model in HP AI Studio's model registry**
-   ```bash
-   python hp_ai_studio_integration.py --register
-   ```
-
-2. **What happens during registration**:
-   - The script connects to the MLflow tracking server
-   - Finds the latest training run
-   - Registers the model with a specified name in the model registry
-   - Creates a new version if the model already exists
-   - Returns the model version for reference
-
-#### 4. Creating Deployment Configuration
-
-1. **Generate deployment configuration**
-   ```bash
-   python hp_ai_studio_integration.py --deploy-config
-   ```
-
-2. **What happens during configuration**:
-   - The script creates a deployment configuration JSON file
-   - Includes environment specifications (Python version, dependencies)
-   - Defines compute resources (CPU, memory)
-   - Specifies API endpoint configuration
-   - Includes input/output schemas
-
-### End-to-End Integration
-
-We've successfully integrated the SpendingRecommender model with both the frontend and backend components of DOGEPAL:
-
-#### Backend Integration
-
-The SpendingRecommender model is now integrated with the FastAPI backend in `backend/app/api/v1/endpoints/recommendations.py`. Key integration points:
-
-- The `generate_recommendations` endpoint now uses our HP AI Studio-integrated model
-- Model recommendations are converted to database records with proper mapping of:
-  - Recommendation types (spending_anomaly, budget_optimization, etc.)
-  - Confidence scores and priority levels
-  - Explainability metadata and calculation details
-- The backend handles proper error handling and validation
-
-#### Frontend Integration
-
-The Streamlit frontend in `frontend/pages/recommendations.py` has been enhanced to showcase the model's explainability features:
-
-- Detailed display of calculation methodology in formatted code blocks
-- Visualization of factors considered in the recommendation
-- Confidence score indicators with color-coded priority levels
-- Interactive expandable sections for detailed model explanations
-
-#### NYC Government Context
-
-The integration preserves the NYC government context with:
-
-- Borough-specific spending analysis
-- Department benchmarks for anomaly detection
-- Project budget monitoring
-- Vendor consolidation recommendations tailored to government procurement
-   - Saves the configuration to `models/artifacts/deployment_config.json`
-
-### Model Explainability Features
-
-Our SpendingRecommender model provides comprehensive explainability features that meet HP AI Studio Hackathon requirements:
-
-#### 1. Transparent Calculation Methodology
-
-- **Z-Score Calculations**: Clear mathematical formulas showing how spending anomalies are detected
-- **Benchmark Comparisons**: Detailed comparisons against department and category averages
-- **Confidence Scoring**: Explicit formulas for how confidence scores are calculated
-
-#### 2. Factors Considered
-
-Each recommendation includes a detailed list of factors that influenced the decision:
-
-- Department spending patterns
-- Category benchmarks
-- Historical transaction data
-- Vendor consolidation opportunities
-- Budget optimization potential
-
-#### 3. Visual Explainability
-
-The frontend visualizes model decisions with:
-
-- Color-coded confidence indicators
-- Progress bars for confidence scores
-- Priority indicators (high/medium/low)
-- Formatted calculation blocks
-
-#### 4. Recommendation Metadata
-
-Each recommendation includes rich metadata:
-
-- Potential savings amounts
-- Confidence scores
-- Priority levels
-- Suggested actions
-- Related transaction details
-
-These explainability features ensure that users understand not just WHAT the model recommends, but WHY it makes those recommendations, fostering trust and adoption.
-
-### Testing the Integration
-
-To verify the HP AI Studio integration is working correctly:
-
-1. **Run the test script**
-   ```bash
-   python test_recommender.py
-   ```
-
-2. **Check MLflow UI**
-   - Navigate to the MLflow UI provided by HP AI Studio
-   - Verify experiment runs are logged correctly
-   - Check model registration in the Model Registry
-   - Confirm artifacts are properly stored
-
-2. **Test the registered model**
-   - Confirm the model appears in the HP AI Studio model registry
-   - Verify the latest version is available
-
-3. **Validate the model locally**
-   ```bash
-   python test_recommender.py
-   ```
-
-### Model Explainability
-
-The SpendingRecommender model includes comprehensive explainability features:
-
-- **Confidence Scores**: Each recommendation includes a confidence score (0-1) indicating the model's certainty
-- **Explanation Metadata**: Detailed reasoning for each recommendation, including statistical justification
-- **Feature Importance**: Documentation of which features influence recommendations (amount, department, category, vendor)
-- **Recommendation Types**: Clear categorization of different recommendation types:
-  - `spending_anomaly`: Identifies unusual spending patterns
-  - `cost_saving`: Suggests opportunities to reduce costs
-  - `vendor_consolidation`: Identifies opportunities to consolidate vendors
-  - `budget_optimization`: Suggests better budget allocation
-  - `policy_violation`: Flags potential policy violations
-
-### Troubleshooting HP AI Studio Integration
-
-#### Common Issues and Solutions
-
-1. **MLflow Connection Issues**
-
-   **Symptoms**: `Connection refused` or `Failed to connect to MLflow server`
-   
-   **Solutions**:
-   - Verify your MLFLOW_TRACKING_URI is correct in the .env file
-   - Check network connectivity to the HP AI Studio server
-   - Ensure your authentication credentials are valid
-   - Try using an explicit authentication token if required
-
-2. **Model Training Failures**
-
-   **Symptoms**: `Training failed` or errors during the training process
-   
-   **Solutions**:
-   - Check the logs for specific error messages
-   - Verify sample data is available and properly formatted
-   - Ensure all dependencies are installed correctly
-   - Try with a smaller dataset for testing
-
-3. **Model Registration Issues**
-
-   **Symptoms**: `Model registration failed` or `No runs found`
-   
-   **Solutions**:
-   - Ensure you've run the training step first
-   - Check permissions to create/modify models in the registry
-   - Verify the experiment name is correct
-   - Try manually registering the model through the MLflow UI
-
-4. **Deployment Configuration Errors**
-
-   **Symptoms**: `Error creating deployment configuration`
-   
-   **Solutions**:
-   - Ensure the model is properly registered
-   - Check write permissions to the artifacts directory
-   - Verify the model version exists in the registry
-
-5. **Dependency Conflicts**
-
-   **Symptoms**: Import errors or version mismatch warnings
-   
-   **Solutions**:
-   - Create a clean virtual environment
-   - Install dependencies in the correct order
-   - Check for conflicting versions in requirements.txt
-   - Use `pip list` to verify installed versions
-
-6. **Path Resolution Issues**
-
-   **Symptoms**: `File not found` or path-related errors
-   
-   **Solutions**:
-   - Use absolute paths when necessary
-   - Avoid nested directories with the same name
-   - Run scripts from the project root directory
-   - Check file permissions
-
-#### Debugging Tips
-
-1. **Enable Verbose Logging**
-   
-   Add this to your script before running:
-   ```python
-   import logging
-   logging.basicConfig(level=logging.DEBUG)
-   ```
-
-2. **Check MLflow Server Logs**
-   
-   If you have access to the HP AI Studio server logs, check for connection or authentication issues.
-
-3. **Validate Environment Variables**
-   
-   Print environment variables to ensure they're loaded correctly:
-   ```python
-   import os
-   print(os.environ.get("MLFLOW_TRACKING_URI"))
-   ```
-
-4. **Test MLflow Connection Separately**
-   
-   Create a simple script to test just the MLflow connection:
-   ```python
-   import mlflow
-   mlflow.set_tracking_uri("your-tracking-uri")
-   print(mlflow.list_experiments())
-   ```
-
-5. **Check for File Lock Issues**
-   
-   If you're getting file access errors, ensure no other processes are using the same files.
-
----
-
-The project includes a script to generate realistic sample data for testing and demonstration purposes.
-
-### Generating Sample Data
-
-1. **Run the data generation script**:
-   ```bash
-   python scripts/generate_sqlite_direct.py
-   ```
-
-2. **What's included**:
-   - 100 realistic spending records with NYC government context
-   - 71 AI-powered recommendations
-   - Sample data includes:
-     - NYC boroughs and departments
-     - Various spending categories and vendors
-     - Different recommendation types with confidence scores
-
-3. **Customization**:
-   - Edit `scripts/generate_sqlite_direct.py` to modify data generation parameters
-   - Adjust the number of records by changing the count parameter
-   - Modify the random seed for reproducible results
-
-### Database Schema
-
-The sample data populates two main tables:
-
-1. **spending**: Contains transaction records with details like amount, vendor, and category
-2. **recommendation**: Contains AI-generated recommendations linked to spending records
-
-## 🚀 Running the Application
-   ```
-
-3. **Install dependencies**
-   ```bash
-   cd backend
+   # Install dependencies
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**
+3. **Configure the application**
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # Copy and edit the example environment file
+   copy .env.example .env
    ```
 
-5. **Initialize the database**
+4. **Initialize the database**
    ```bash
-   python -m app.db.init_db
+   python database.py
    ```
 
-6. **Run the backend server**
+5. **Run the application**
    ```bash
-   uvicorn app.main:app --reload
-   ```
-
-7. **Run the frontend** (in a new terminal)
-   ```bash
-   cd frontend
    streamlit run app.py
    ```
 
-## 📚 Documentation
+6. **Open your browser** to `http://localhost:8501`
 
-- [API Documentation](http://localhost:8000/docs) (after starting the backend)
-- [User Guide](docs/user_guide/README.md)
-- [Developer Guide](docs/developer_guide.md)
+## Documentation
 
-## 🤝 Contributing
+For more detailed information, please refer to:
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
+- [Development Guide](docs/DEVELOPMENT.md) - Setup and contribution guidelines
+- [System Architecture](docs/ARCHITECTURE.md) - Technical design and components
+- [Changelog](docs/CHANGELOG.md) - Version history and changes
+- [Privacy Policy](docs/PRIVACY.md) - Data handling and privacy practices
 
-## 📄 License
+## Features
+
+- **Spending Dashboard**: Visualize and analyze government spending
+- **AI-Powered Insights**: Get automated recommendations
+- **Local-First**: Runs entirely offline with SQLite
+- **Privacy-Focused**: No telemetry or data collection
+- **Open Source**: MIT Licensed for transparency and community contributions
+
+## Tech Stack
+
+- **Frontend**: Streamlit
+- **Backend**: Python 3.9+
+- **Database**: SQLite with SQLAlchemy ORM
+- **AI/ML**: Scikit-learn, MLflow (optional)
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Sample Data
 
-- Inspired by DOGE (Department of Government Efficiency) principles
-- Built for the HP AI Studio Hackathon
+Sample data can be loaded using the included script:
+
+```bash
+python scripts/load_sample_data.py
+```
+
+This will populate the database with example spending records and recommendations for demonstration purposes.
+
+## API Access
+
+The application provides a simple REST API for programmatic access:
+
+### Endpoints
+
+- `GET /api/v1/spending` - List all spending records
+- `GET /api/v1/spending/{transaction_id}` - Get a specific spending record
+- `GET /api/v1/recommendations` - List all recommendations
+- `GET /api/v1/recommendations/{id}` - Get a specific recommendation
+
+Example usage with `curl`:
+
+```bash
+# List all spending records
+curl http://localhost:8501/api/v1/spending
+
+# Get a specific recommendation
+curl http://localhost:8501/api/v1/recommendations/1
+   
+## Project Structure
+
+```
+dogepal-hackathon/
+├── app/                      # Main application package
+│   ├── models/               # Database models
+│   ├── data/                 # Data files
+│   └── static/               # Static assets
+├── docs/                     # Documentation
+├── tests/                    # Test files
+├── .env.example              # Example environment variables
+├── .gitignore
+├── app.py                    # Main Streamlit application
+├── config.py                 # Application configuration
+├── database.py               # Database setup and models
+└── README.md                 # Project overview
+```
+
+## Development
+
+For development setup and contribution guidelines, please see the [Development Guide](docs/DEVELOPMENT.md).
+
+## Troubleshooting
+
+### Database Connection Issues
+- Ensure the SQLite database file exists and is writable
+- Check that no other process has locked the database
+- Verify the database path in your `.env` file
+
+### Missing Dependencies
+If you encounter missing module errors, ensure all dependencies are installed:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Port Already in Use
+If port 8501 is already in use, you can change it by setting the `PORT` environment variable:
+
+```bash
+# Windows
+set PORT=8502
+streamlit run app.py
+
+# macOS/Linux
+PORT=8502 streamlit run app.py
+```
+
+## Getting Help
+
+For additional help or to report issues, please open an issue on our [GitHub repository](https://github.com/professordnyc/dogepal-hackathon/issues).
+
+## Contributing
+
+We welcome contributions! Please see our [Development Guide](docs/DEVELOPMENT.md) for details on how to contribute to this project.
