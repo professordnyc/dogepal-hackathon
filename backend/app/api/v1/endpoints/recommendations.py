@@ -1,12 +1,12 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 import numpy as np
 import json
 from datetime import datetime, timedelta
 
-from app.db.session import get_db
+from app.db.session import get_async_session
 from app.models.spending import Spending as SpendingModel, Recommendation as RecommendationModel
 from app.schemas.recommendation import (
     Recommendation, RecommendationCreate, RecommendationUpdate,
@@ -14,7 +14,7 @@ from app.schemas.recommendation import (
 )
 from app.schemas.spending import CategoryEnum as Category, DepartmentEnum as Department
 
-router = APIRouter()
+router = APIRouter(prefix="", include_in_schema=True)
 
 # Helper function to calculate z-score
 def calculate_zscore(value, mean, std):
@@ -25,7 +25,7 @@ def calculate_zscore(value, mean, std):
 @router.get("/", response_model=List[RecommendationWithSpending])
 async def get_recommendations(
     *,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_session),
     skip: int = 0,
     limit: int = 100,
     status: Optional[RecommendationStatus] = None,
@@ -36,229 +36,265 @@ async def get_recommendations(
     """
     Get spending recommendations with optional filtering.
     """
-    # Build base query with join to spending
-    query = (
-        select(
-            RecommendationModel,
-            SpendingModel.amount.label("spending_amount"),
-            SpendingModel.category.label("spending_category"),
-            SpendingModel.vendor.label("spending_vendor"),
-            SpendingModel.date.label("spending_date"),
+    try:
+        print("DEBUG: Entering get_recommendations endpoint")
+        # Build base query with join to spending
+        query = (
+            select(
+                RecommendationModel,
+                SpendingModel.amount.label("spending_amount"),
+                SpendingModel.category.label("spending_category"),
+                SpendingModel.vendor.label("spending_vendor"),
+                SpendingModel.spending_date.label("spending_date"),
+            )
+            .join(SpendingModel, RecommendationModel.transaction_id == SpendingModel.transaction_id)
+            .where(RecommendationModel.confidence_score >= min_confidence)
         )
-        .join(SpendingModel, RecommendationModel.spending_id == SpendingModel.id)
-        .where(RecommendationModel.confidence_score >= min_confidence)
-    )
+        
+        # Apply filters
+        if status:
+            query = query.where(RecommendationModel.status == status)
+        if category:
+            query = query.where(SpendingModel.category == category)
+        if department:
+            query = query.where(SpendingModel.department == department)
+        
+        # Apply pagination and ordering
+        query = (
+            query.order_by(RecommendationModel.confidence_score.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        
+        print(f"DEBUG: Executing query: {query}")
+        result = await db.execute(query)
+        recommendations_with_spending = result.mappings().all()
+        print(f"DEBUG: Found {len(recommendations_with_spending)} recommendations")
+        
+        # Convert to Pydantic model
+        recommendations = []
+        for row in recommendations_with_spending:
+            rec_dict = dict(row["Recommendation"].__dict__)
+            rec_dict["spending_amount"] = row["spending_amount"]
+            rec_dict["spending_category"] = row["spending_category"]
+            rec_dict["spending_vendor"] = row["spending_vendor"]
+            rec_dict["spending_date"] = row["spending_date"]
+            recommendations.append(RecommendationWithSpending(**rec_dict))
+        
+        return recommendations
+    except Exception as e:
+        print(f"ERROR in get_recommendations: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving recommendations: {str(e)}"
+        )
     
-    # Apply filters
-    if status:
-        query = query.where(RecommendationModel.status == status)
-    if category:
-        query = query.where(SpendingModel.category == category)
-    if department:
-        query = query.where(SpendingModel.department == department)
-    
-    # Apply pagination and ordering
-    query = (
-        query.order_by(RecommendationModel.confidence_score.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    
-    # Execute query
-    result = await db.execute(query)
-    
-    # Convert to Pydantic model
-    recommendations = []
-    for row in result.mappings().all():
-        rec_dict = dict(row["Recommendation"].__dict__)
-        rec_dict["spending_amount"] = row["spending_amount"]
-        rec_dict["spending_category"] = row["spending_category"]
-        rec_dict["spending_vendor"] = row["spending_vendor"]
-        rec_dict["spending_date"] = row["spending_date"]
-        recommendations.append(RecommendationWithSpending(**rec_dict))
-    
-    return recommendations
+    # This code is unreachable due to the try/except block above
 
 @router.get("/generate", response_model=List[Recommendation])
 async def generate_recommendations(
     *,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_session),
     min_confidence: float = 0.7,
 ) -> List[Recommendation]:
     """
     Generate new spending recommendations based on analysis of spending data.
     Uses the HP AI Studio-integrated SpendingRecommender model for intelligent recommendations.
     """
-    # Get all spending data for analysis
-    result = await db.execute(select(SpendingModel))
-    all_spending = result.scalars().all()
-    
-    if not all_spending:
-        return []
-    
-    # Import the SpendingRecommender model
     try:
-        from models.spending_recommender import SpendingRecommender
-    except ImportError:
-        # Handle relative import if needed
-        import sys
-        import os
-        from pathlib import Path
+        print("DEBUG: Entering generate_recommendations endpoint")
+        # Get all spending data for analysis
+        result = await db.execute(select(SpendingModel))
+        all_spending = result.scalars().all()
+        print(f"DEBUG: Found {len(all_spending)} spending records")
         
-        # Add the project root to path
-        project_root = Path(__file__).parent.parent.parent.parent.parent
-        if str(project_root) not in sys.path:
-            sys.path.append(str(project_root))
+        if not all_spending:
+            print("DEBUG: No spending records found, returning empty list")
+            return []
         
+        # Import the SpendingRecommender model
         try:
+            print("DEBUG: Attempting to import SpendingRecommender")
             from models.spending_recommender import SpendingRecommender
-        except ImportError as e:
-            print(f"Failed to import SpendingRecommender: {e}")
-            # Fallback to a simple recommendation generator for testing
-            class SpendingRecommender:
-                def __init__(self):
-                    pass
-                
-                def fit(self, data):
-                    return self
-                
-                def predict(self, data):
-                    # Return a simple recommendation for testing
-                    return [{
-                        'type': 'cost_saving',
-                        'title': 'Test Recommendation',
-                        'description': 'This is a test recommendation',
-                        'confidence_score': 0.8,
-                        'priority': 'medium',
-                        'explanation': 'Test explanation',
-                        'calculation': 'Test calculation',
-                        'factors': ['test factor'],
-                        'suggested_action': 'Test action'
-                    }]
-    
-    # Convert to list of dicts for easier processing
-    spending_data = [
-        {
-            "transaction_id": str(s.id),
-            "amount": s.amount,
-            "category": s.category.lower(),  # Model expects lowercase
-            "vendor": s.vendor,
-            "date": s.date,
-            "department": s.department.lower(),  # Model expects lowercase
-            "user_id": s.user_id,
-            "project_name": s.project_name,
-            "borough": s.borough if hasattr(s, 'borough') else None,
-            "justification": s.justification if hasattr(s, 'justification') else None
-        }
-        for s in all_spending
-    ]
-    
-    # Initialize the SpendingRecommender model
-    recommender = SpendingRecommender()
-    
-    # Generate recommendations using the model
-    model_recommendations = recommender.predict(spending_data)
-    
-    # Filter recommendations by confidence score
-    filtered_recommendations = [
-        rec for rec in model_recommendations 
-        if rec and rec.get('confidence_score', 0) >= min_confidence
-    ]
-    
-    # Convert model recommendations to database model instances
-    new_recommendations = []
-    
-    for rec in filtered_recommendations:
-        # Find the corresponding spending record
-        transaction_id = rec.get('transaction_id')
-        if not transaction_id:
-            continue
+        except ImportError:
+            # Handle relative import if needed
+            import sys
+            import os
+            from pathlib import Path
             
-        # Check if we already have a recent recommendation for this spending
-        try:
-            spending_id = int(transaction_id)
-        except ValueError:
-            # If transaction_id is not a valid integer, try to find by string
-            for item in spending_data:
-                if item.get('transaction_id') == transaction_id:
-                    spending_id = item.get('id')
-                    break
-            else:
-                continue
+            # Add the project root to path
+            project_root = Path(__file__).parent.parent.parent.parent.parent
+            print(f"DEBUG: Adding project root to path: {project_root}")
+            if str(project_root) not in sys.path:
+                sys.path.append(str(project_root))
+            
+            try:
+                from models.spending_recommender import SpendingRecommender
+                print("DEBUG: Successfully imported SpendingRecommender after path adjustment")
+            except ImportError as e:
+                print(f"ERROR: Failed to import SpendingRecommender: {e}")
+                # Fallback to a simple recommendation generator for testing
+                class SpendingRecommender:
+                    def __init__(self):
+                        pass
+                    
+                    def fit(self, data):
+                        return self
+                    
+                    def predict(self, data):
+                        # Return a simple recommendation for testing
+                        return [{
+                            'type': 'cost_saving',
+                            'title': 'Test Recommendation',
+                            'description': 'This is a test recommendation',
+                            'confidence_score': 0.8,
+                            'priority': 'medium',
+                            'explanation': 'Test explanation',
+                            'calculation': 'Test calculation',
+                            'factors': ['test factor'],
+                            'suggested_action': 'Test action'
+                        }]
+                print("DEBUG: Using fallback SpendingRecommender implementation")
         
-        # Check for existing recommendation
-        existing_rec = await db.execute(
-            select(RecommendationModel).where(
-                RecommendationModel.spending_id == spending_id,
-                RecommendationModel.created_at >= datetime.now() - timedelta(days=30)
-            )
-        )
-        if existing_rec.scalars().first():
-            continue
+        # Convert to list of dicts for easier processing
+        print("DEBUG: Converting spending data to dict format for model")
+        spending_data = [
+            {
+                "transaction_id": str(s.id),
+                "amount": s.amount,
+                "category": s.category.lower(),  # Model expects lowercase
+                "vendor": s.vendor,
+                "date": s.date,
+                "department": s.department.lower(),  # Model expects lowercase
+                "user_id": s.user_id,
+                "project_name": s.project_name,
+                "borough": s.borough if hasattr(s, 'borough') else None,
+                "justification": s.justification if hasattr(s, 'justification') else None
+            }
+            for s in all_spending
+        ]
         
-        # Map recommendation type from model to database enum
-        rec_type = rec.get('recommendation_type', 'cost_saving')
-        if rec_type == 'spending_anomaly':
-            db_rec_type = RecommendationType.SPENDING_ANOMALY
-        elif rec_type == 'budget_optimization':
-            db_rec_type = RecommendationType.BUDGET_OPTIMIZATION
-        elif rec_type == 'vendor_consolidation':
-            db_rec_type = RecommendationType.VENDOR_CONSOLIDATION
-        elif rec_type == 'policy_violation':
-            db_rec_type = RecommendationType.POLICY_VIOLATION
-        else:
-            db_rec_type = RecommendationType.COST_SAVING
+        # Initialize the SpendingRecommender model
+        print("DEBUG: Initializing SpendingRecommender model")
+        recommender = SpendingRecommender()
         
-        # Map priority based on confidence score
-        if rec.get('confidence_score', 0) >= 0.8:
-            priority = 'high'
-        elif rec.get('confidence_score', 0) >= 0.6:
-            priority = 'medium'
-        else:
-            priority = 'low'
+        # Generate recommendations using the model
+        print("DEBUG: Generating recommendations using model")
+        model_recommendations = recommender.predict(spending_data)
+        print(f"DEBUG: Model returned {len(model_recommendations) if model_recommendations else 0} recommendations")
         
-        # Create explanation from model data
-        explanation = rec.get('explanation', {})
-        if isinstance(explanation, dict):
-            explanation_text = explanation.get('calculation', '')
-            if explanation.get('factors_considered'):
-                explanation_text += "\n\nFactors considered:\n" + "\n".join(
-                    f"- {factor}" for factor in explanation.get('factors_considered', [])
+        # Filter recommendations by confidence score
+        filtered_recommendations = [
+            rec for rec in model_recommendations 
+            if rec and rec.get('confidence_score', 0) >= min_confidence
+        ]
+        print(f"DEBUG: Filtered to {len(filtered_recommendations)} recommendations with confidence >= {min_confidence}")
+        
+        # Check if we already have these recommendations in the database
+        new_recommendations = []
+        for rec in filtered_recommendations:
+            # Create a new recommendation
+            spending_id = None
+            
+            # Find the spending record this recommendation is for
+            if 'transaction_id' in rec:
+                # Look up spending by transaction ID
+                result = await db.execute(
+                    select(SpendingModel).where(SpendingModel.id == rec['transaction_id'])
                 )
-        else:
-            explanation_text = str(explanation)
+                spending = result.scalars().first()
+                if spending:
+                    spending_id = spending.id
+            
+            # If no specific transaction ID, use the first spending record
+            if not spending_id and all_spending:
+                spending_id = all_spending[0].id
+            
+            if not spending_id:
+                print(f"DEBUG: Skipping recommendation - no spending ID found for {rec.get('title')}")
+                continue
+            
+            # Check if a similar recommendation already exists
+            result = await db.execute(
+                select(RecommendationModel).where(
+                    RecommendationModel.spending_id == spending_id,
+                    RecommendationModel.type == rec.get('type', 'unknown')
+                )
+            )
+            existing_rec = result.scalars().first()
+            
+            if existing_rec:
+                # Skip if we already have this recommendation
+                print(f"DEBUG: Skipping recommendation - already exists for spending {spending_id}")
+                continue
+            
+            # Map recommendation type to enum
+            rec_type = RecommendationType.unknown
+            if rec.get('type') == 'cost_saving':
+                rec_type = RecommendationType.cost_saving
+            elif rec.get('type') == 'budget_optimization':
+                rec_type = RecommendationType.budget_optimization
+            elif rec.get('type') == 'vendor_consolidation':
+                rec_type = RecommendationType.vendor_consolidation
+            elif rec.get('type') == 'spending_anomaly':
+                rec_type = RecommendationType.spending_anomaly
+            elif rec.get('type') == 'policy_violation':
+                rec_type = RecommendationType.policy_violation
+            
+            # Map confidence score to priority
+            priority = "low"
+            if rec.get('confidence_score', 0) >= 0.8:
+                priority = "high"
+            elif rec.get('confidence_score', 0) >= 0.6:
+                priority = "medium"
+            
+            # Create recommendation object
+            new_rec = RecommendationModel(
+                spending_id=spending_id,
+                type=rec_type,
+                title=rec.get('title', 'Untitled Recommendation'),
+                description=rec.get('description', ''),
+                confidence_score=rec.get('confidence_score', 0.0),
+                priority=priority,
+                status=RecommendationStatus.pending,
+                explanation=rec.get('explanation', ''),
+                calculation=rec.get('calculation', ''),
+                factors=json.dumps(rec.get('factors', [])),
+                suggested_action=rec.get('suggested_action', ''),
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            
+            # Add to database
+            db.add(new_rec)
+            new_recommendations.append(new_rec)
         
-        # Create database model instance
-        recommendation = RecommendationModel(
-            spending_id=spending_id,
-            recommendation_type=db_rec_type,
-            title=rec.get('title', 'Spending Recommendation'),
-            description=rec.get('description', 'AI-generated spending recommendation'),
-            potential_savings=rec.get('potential_savings', 0.0),
-            confidence_score=rec.get('confidence_score', 0.5),
-            priority=priority,
-            explanation=explanation_text,
-            suggested_action=rec.get('suggested_action', 
-                                   'Review this recommendation and consider implementing the suggested changes.'),
-            status=RecommendationStatus.PENDING
-        )
-        new_recommendations.append(recommendation)
-    
-    # Save new recommendations to database
-    for rec in new_recommendations:
-        db.add(rec)
-    
-    if new_recommendations:
+        # Commit changes
+        print(f"DEBUG: Committing {len(new_recommendations)} new recommendations to database")
         await db.commit()
+        
+        # Refresh to get IDs
         for rec in new_recommendations:
             await db.refresh(rec)
-    
-    return new_recommendations
+        
+        # Convert to Pydantic models
+        return [Recommendation.from_orm(rec) for rec in new_recommendations]
+        
+    except Exception as e:
+        print(f"ERROR in generate_recommendations: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating recommendations: {str(e)}"
+        )
 
 @router.get("/stats", response_model=RecommendationStats)
 async def get_recommendation_stats(
     *,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_session),
 ) -> RecommendationStats:
     """
     Get statistics about recommendations.
@@ -303,8 +339,8 @@ async def get_recommendation_stats(
 @router.put("/{recommendation_id}", response_model=Recommendation)
 async def update_recommendation(
     *,
-    db: AsyncSession = Depends(get_db),
-    recommendation_id: int,
+    db: AsyncSession = Depends(get_async_session),
+    recommendation_id: str,
     recommendation_in: RecommendationUpdate
 ) -> Recommendation:
     """
@@ -336,8 +372,8 @@ async def update_recommendation(
 @router.delete("/{recommendation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_recommendation(
     *,
-    db: AsyncSession = Depends(get_db),
-    recommendation_id: int
+    db: AsyncSession = Depends(get_async_session),
+    recommendation_id: str
 ) -> None:
     """
     Delete a recommendation.

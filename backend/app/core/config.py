@@ -5,6 +5,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "DOGEPAL - Spending Recommendation Engine"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
+    ENVIRONMENT: str = "development"
+    
+    # Server settings
+    HOST: str = "127.0.0.1"
+    PORT: int = 8000
     
     # Debug mode
     DEBUG: bool = True

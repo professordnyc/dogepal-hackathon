@@ -88,7 +88,7 @@ async def read_spending(
     Get a specific spending record by ID.
     """
     result = await db.execute(
-        select(SpendingModel).where(SpendingModel.id == spending_id)
+        select(SpendingModel).where(SpendingModel.transaction_id == spending_id)
     )
     spending = result.scalars().first()
     
@@ -112,7 +112,7 @@ async def update_spending(
     """
     # Get existing spending
     result = await db.execute(
-        select(SpendingModel).where(SpendingModel.id == spending_id)
+        select(SpendingModel).where(SpendingModel.transaction_id == spending_id)
     )
     db_spending = result.scalars().first()
     
@@ -144,7 +144,7 @@ async def delete_spending(
     """
     # Get spending to delete
     result = await db.execute(
-        select(SpendingModel).where(SpendingModel.id == spending_id)
+        select(SpendingModel).where(SpendingModel.transaction_id == spending_id)
     )
     db_spending = result.scalars().first()
     
@@ -172,7 +172,7 @@ async def get_spending_summary(
     """
     # Base query
     query = select(
-        func.count(SpendingModel.id).label("total_transactions"),
+        func.count(SpendingModel.transaction_id).label("total_transactions"),
         func.sum(SpendingModel.amount).label("total_amount"),
         func.avg(SpendingModel.amount).label("average_amount"),
         func.max(SpendingModel.amount).label("max_amount"),
@@ -191,7 +191,7 @@ async def get_spending_summary(
     # Get category distribution
     category_query = select(
         SpendingModel.category,
-        func.count(SpendingModel.id).label("count"),
+        func.count(SpendingModel.transaction_id).label("count"),
         func.sum(SpendingModel.amount).label("total")
     )
     
