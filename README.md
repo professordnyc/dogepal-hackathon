@@ -9,6 +9,8 @@ AI-Powered Government Spending Analysis Tool
 
 DOGEPAL is a streamlined, privacy-focused tool for analyzing and optimizing government spending. This version features a simple Streamlit interface with a SQLite backend, designed for local development and analysis.
 
+This project is a streamlined version of a full-featured DOGEPAL project in development. This prototype was developed for the 2025 NVIDIA/HP AI Studio hackathon.
+
 > **Privacy First**: This project is configured with telemetry disabled and no data collection. See our [privacy policy](docs/PRIVACY.md) for details.
 
 ## Quick Start
